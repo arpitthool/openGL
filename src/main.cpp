@@ -1,6 +1,7 @@
 #include <iostream>
 #include <glad/glad.h>  // Include GLAD before GLFW (GLAD must be included before any OpenGL headers)
 #include <GLFW/glfw3.h>
+#include <cmath>
 
 const char* vertexShaderSource = "#version 460 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -31,9 +32,9 @@ int main() {
 
 
     GLfloat vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left bottom corner of the triangle
-        0.5f, -0.5f, 0.0f, // right bottom corner of the triangle
-        0.0f, 0.5f, 0.0f, // top corner of the triangle
+        -0.5f, -0.5f * float(sqrt(3))/3, 0.0f, // left bottom corner of the triangle
+        0.5f, -0.5f* float(sqrt(3))/3, 0.0f, // right bottom corner of the triangle
+        0.0f, 0.5f* float(sqrt(3))*2/3, 0.0f, // top corner of the triangle
     }; // the position must be between -1.0 and 1.0, because the viewport is also between -1.0 and 1.0
 
     int screenWidth = 800;
