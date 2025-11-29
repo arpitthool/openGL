@@ -11,7 +11,6 @@ out vec3 color;
 // Controls the scale of the vertices
 uniform float scale;
 
-
 void main()
 {
 	// Outputs the positions/coordinates of all vertices

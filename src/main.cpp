@@ -70,20 +70,24 @@ int main() {
 
 	// Links VBO to VAO
 	// VAO1.LinkVBO(VBO1, 0);
-    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
-    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0); // Link the position attribute to the VAO
+    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float))); // Link the color attribute to the VAO
 	// Unbind all to prevent accidentally modifying them
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
 
-
+    GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale"); // Get the location of the scale uniform
+    
     while (!glfwWindowShouldClose(window)) { // loop until the window is closed
 
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f); // Set the background color to a light blue color, 
         glClear(GL_COLOR_BUFFER_BIT); // clean the buffer and assign new to it
 
         shaderProgram.activate(); // Activate the shader program
+
+        glUniform1f(uniID, 0.5f); // Set the scale to 0.5, so we actually set the length 1 + 0.5 = 1.5 times the original length, 
+        // this should be called after the shader program is activated
 
         VAO1.Bind(); // Bind the VAO
 
