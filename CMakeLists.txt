@@ -10,10 +10,7 @@ pkg_check_modules(GLFW REQUIRED glfw3)
 add_executable(
     main 
     src/main.cpp 
-    src/config.h
     src/glad.c
-    src/triangle_mesh.h
-    src/triangle_mesh.cpp
 )
 
 # Add include directories for GLAD
