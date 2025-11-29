@@ -15,6 +15,7 @@ add_executable(
     src/VAO.cpp
     src/VBO.cpp
     src/EBO.cpp
+    src/stb.cpp
 )
 
 # Add include directories for GLAD and headers

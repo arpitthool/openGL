@@ -29,10 +29,10 @@
 // Square
 GLfloat vertices[] =
 { //               COORDINATES                  /     COLORS           //
-	-0.5f, -0.5f , 0.0f,     1.0f, 0.0f,  0.0f, // Lower left corner
-	 -0.5f, 0.5f , 0.0f,     0.0f, 1.0f,  0.0f, // upper left corner
-	 0.5f,  0.5f , 0.0f,     0.0f, 0.0f,  1.0f, // Upper right corner
-	 0.5f, -0.5f , 0.0f,     1.0f, 1.0f,  1.0f  // Lower right corner
+	-0.5f, -0.5f , 0.0f,     1.0f, 0.0f,  0.0f, 0.0f, 0.0f, // Lower left corner
+	 -0.5f, 0.5f , 0.0f,     0.0f, 1.0f,  0.0f, 0.0f, 1.0f, // upper left corner
+	 0.5f,  0.5f , 0.0f,     0.0f, 0.0f,  1.0f, 1.0f, 1.0f, // Upper right corner
+	 0.5f, -0.5f , 0.0f,     1.0f, 1.0f,  1.0f, 1.0f, 0.0f  // Lower right corner
 }; // the position must be between -1.0 and 1.0, because the viewport is also between -1.0 and 1.0
 
 // to save memory, we can use indices to draw the triangles
@@ -86,15 +86,44 @@ int main() {
 
 	// Links VBO to VAO
 	// VAO1.LinkVBO(VBO1, 0);
-    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0); // Link the position attribute to the VAO
-    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float))); // Link the color attribute to the VAO
+    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0); // Link the position attribute to the VAO
+    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float))); // Link the color attribute to the VAO
+    VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float))); // Link the texture coordinate attribute to the VAO 
 	// Unbind all to prevent accidentally modifying them
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
 
     GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale"); // Get the location of the scale uniform
+
+    // textures
+    int widthImg, heightImg, numColCh;
+    stbi_set_flip_vertically_on_load(true);
+    int noOfChannels = 4;
+    unsigned char* bytes = stbi_load("../resources/textures/Dog.png", &widthImg, &heightImg, &numColCh, noOfChannels);
+
+    GLuint texture;
+    int noOfTextures = 1;
+    glGenTextures( noOfTextures, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
     
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(bytes);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0"); // Get the location of the texture uniform
+    shaderProgram.activate(); // Activate the shader program
+    glUniform1i(tex0Uni, 0); // Set the texture unit to 0
+
     while (!glfwWindowShouldClose(window)) { // loop until the window is closed
 
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f); // Set the background color to a light blue color, 
@@ -104,6 +133,8 @@ int main() {
 
         glUniform1f(uniID, 0.5f); // Set the scale to 0.5, so we actually set the length 1 + 0.5 = 1.5 times the original length, 
         // this should be called after the shader program is activated
+
+        glBindTexture(GL_TEXTURE_2D, texture); // Bind the texture to the texture unit
 
         VAO1.Bind(); // Bind the VAO
 
@@ -123,6 +154,7 @@ int main() {
 
     glfwDestroyWindow(window); // Destroy the window
     glfwTerminate(); // Clean up GLFW when the program is done
+    glDeleteTextures(noOfTextures, &texture); // Delete the texture
 
     return 0; // Return success
 }
