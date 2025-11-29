@@ -6,6 +6,7 @@
 #include "../headers/VAO.h"
 #include "../headers/VBO.h"
 #include "../headers/EBO.h"
+#include "../dependencies/stb/stb_image.h"
 
 // to save memory, we just need to store the vertices of the outer triangle and the inner midpoints to draw all 3 triangles
 GLfloat vertices[] =
