@@ -11,10 +11,17 @@ add_executable(
     main 
     src/main.cpp 
     src/glad.c
+    src/shaderClass.cpp
+    src/VAO.cpp
+    src/VBO.cpp
+    src/EBO.cpp
 )
 
-# Add include directories for GLAD
-target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/dependencies)
+# Add include directories for GLAD and headers
+target_include_directories(main PRIVATE 
+    ${CMAKE_SOURCE_DIR}/dependencies
+    ${CMAKE_SOURCE_DIR}/headers
+)
 
 # Link GLFW
 target_link_libraries(main ${GLFW_LIBRARIES})
