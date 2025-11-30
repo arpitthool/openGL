@@ -230,7 +230,10 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	// Creates camera object
-	Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
+	Camera camera(width, height, glm::vec3(0.0f, 0.5f, 2.0f));
+
+    float rotationAngle = 30.0f;
+    double prevTime = glfwGetTime();
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -246,8 +249,20 @@ int main()
 		camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
 
+        double crntTime = glfwGetTime();
+        if(crntTime - prevTime >= 1.0 / 60.0) { // 60 frames per second
+            rotationAngle += 0.5f;
+            prevTime = crntTime;
+        }
+
 		// Tells OpenGL which Shader Program we want to use
 		shaderProgram.Activate();
+		// Reset model matrix and apply rotation
+		pyramidModel = glm::mat4(1.0f);
+		pyramidModel = glm::translate(pyramidModel, pyramidPos);
+		pyramidModel = glm::rotate(pyramidModel, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+		// Send the updated model matrix to the shader
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, glm::value_ptr(pyramidModel));
 		// Exports the camera Position to the Fragment Shader for specular lighting
 		glUniform3f(glGetUniformLocation(shaderProgram.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
 		// Export the camMatrix to the Vertex Shader of the pyramid

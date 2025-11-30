@@ -36,6 +36,6 @@ void main()
 	color = aColor;
 	// Assigns the texture coordinates from the Vertex Data to "texCoord"
 	texCoord = aTex;
-	// Assigns the normal from the Vertex Data to "Normal"
-	Normal = aNormal;
+	// Transforms the normal using the normal matrix (inverse transpose of model matrix)
+	Normal = mat3(transpose(inverse(model))) * aNormal;
 }
