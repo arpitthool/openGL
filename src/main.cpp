@@ -7,6 +7,9 @@
 #include "../headers/VBO.h"
 #include "../headers/EBO.h"
 #include "../dependencies/stb/stb_image.h"
+#include "../dependencies/glm/glm.hpp"
+#include "../dependencies/glm/gtc/matrix_transform.hpp"
+#include "../dependencies/glm/gtc/type_ptr.hpp"
 
 // to save memory, we just need to store the vertices of the outer triangle and the inner midpoints to draw all 3 triangles
 // GLfloat vertices[] =
@@ -27,18 +30,40 @@
 // };
 
 // Square
-GLfloat vertices[] =
-{ //               COORDINATES                  /     COLORS           //
-	-0.5f, -0.5f , 0.0f,     1.0f, 0.0f,  0.0f, 0.0f, 0.0f, // Lower left corner
-	 -0.5f, 0.5f , 0.0f,     0.0f, 1.0f,  0.0f, 0.0f, 1.0f, // upper left corner
-	 0.5f,  0.5f , 0.0f,     0.0f, 0.0f,  1.0f, 1.0f, 1.0f, // Upper right corner
-	 0.5f, -0.5f , 0.0f,     1.0f, 1.0f,  1.0f, 1.0f, 0.0f  // Lower right corner
-}; // the position must be between -1.0 and 1.0, because the viewport is also between -1.0 and 1.0
+// GLfloat vertices[] =
+// { //               COORDINATES                  /     COLORS           //
+// 	-0.5f, -0.5f , 0.0f,     1.0f, 0.0f,  0.0f, 0.0f, 0.0f, // Lower left corner
+// 	 -0.5f, 0.5f , 0.0f,     0.0f, 1.0f,  0.0f, 0.0f, 1.0f, // upper left corner
+// 	 0.5f,  0.5f , 0.0f,     0.0f, 0.0f,  1.0f, 1.0f, 1.0f, // Upper right corner
+// 	 0.5f, -0.5f , 0.0f,     1.0f, 1.0f,  1.0f, 1.0f, 0.0f  // Lower right corner
+// }; // the position must be between -1.0 and 1.0, because the viewport is also between -1.0 and 1.0
 
-// to save memory, we can use indices to draw the triangles
-GLuint indices[] = { 
-    0, 2, 1, // upper triangle
-    0, 3, 2, // lower triangle
+// // to save memory, we can use indices to draw the triangles
+// GLuint indices[] = { 
+//     0, 2, 1, // upper triangle
+//     0, 3, 2, // lower triangle
+// };
+
+// Pyramid
+// Vertices coordinates
+GLfloat vertices[] =
+{ //     COORDINATES     /        COLORS      /   TexCoord  //
+	-0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	0.0f, 0.0f,
+	-0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	5.0f, 0.0f,
+	 0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	0.0f, 0.0f,
+	 0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	5.0f, 0.0f,
+	 0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	2.5f, 5.0f
+};
+
+// Indices for vertices order
+GLuint indices[] =
+{
+	0, 1, 2,
+	0, 2, 3,
+	0, 1, 4,
+	1, 2, 4,
+	2, 3, 4,
+	3, 0, 4
 };
 
 int main() {
@@ -130,6 +155,27 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT); // clean the buffer and assign new to it
 
         shaderProgram.activate(); // Activate the shader program
+
+        glm::mat4 model = glm::mat4(1.0f); // model matrix initialized to identity matrix
+        glm::mat4 view = glm::mat4(1.0f); // view matrix initialized to identity matrix
+        glm::mat4 proj = glm::mat4(1.0f); // projection matrix initialized to identity matrix
+
+        float rotationAngle = 30.0f;
+        // we rotate the world around the y-axis by 90 degrees
+        model = glm::rotate(model, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+        // now our camera is at the origin looking at the negative z-axis ( into the screen )
+        // instead of moving the camera, we move the the world around the camera
+        view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
+        proj = glm::perspective(glm::radians(45.0f), (float)(screenWidth )/ (float)(screenHeight), 0.1f, 100.0f); // 45 degree field of view, aspect ratio, near plane, far plane
+        // this means we will only see objects that are between 0.1 units and 100 units from the camera, otherwise they will be clipped
+
+        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model"); // Get the location of the model uniform
+        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view"); // Get the location of the view uniform
+        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj"); // Get the location of the projection uniform
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); // Set the model matrix
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)); // Set the view matrix
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj)); // Set the projection matrix
 
         glUniform1f(uniID, 0.5f); // Set the scale to 0.5, so we actually set the length 1 + 0.5 = 1.5 times the original length, 
         // this should be called after the shader program is activated
