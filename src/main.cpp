@@ -149,10 +149,15 @@ int main() {
     shaderProgram.activate(); // Activate the shader program
     glUniform1i(tex0Uni, 0); // Set the texture unit to 0
 
+    float rotationAngle = 30.0f;
+    double prevTime = glfwGetTime();
+
+    glEnable(GL_DEPTH_TEST); // Enable depth testing 
+
     while (!glfwWindowShouldClose(window)) { // loop until the window is closed
 
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f); // Set the background color to a light blue color, 
-        glClear(GL_COLOR_BUFFER_BIT); // clean the buffer and assign new to it
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clean the buffer and assign new to it and we also clear the depth buffer
 
         shaderProgram.activate(); // Activate the shader program
 
@@ -160,8 +165,14 @@ int main() {
         glm::mat4 view = glm::mat4(1.0f); // view matrix initialized to identity matrix
         glm::mat4 proj = glm::mat4(1.0f); // projection matrix initialized to identity matrix
 
-        float rotationAngle = 30.0f;
-        // we rotate the world around the y-axis by 90 degrees
+        // we rotate the world around the y-axis by 0.5 degrees per frame
+        double crntTime = glfwGetTime();
+        if(crntTime - prevTime >= 1.0 / 60.0) { // 60 frames per second
+            rotationAngle += 0.5f;
+            prevTime = crntTime;
+        }
+
+        // we rotate the world around the y-axis 
         model = glm::rotate(model, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
         // now our camera is at the origin looking at the negative z-axis ( into the screen )
         // instead of moving the camera, we move the the world around the camera
