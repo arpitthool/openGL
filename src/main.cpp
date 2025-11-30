@@ -7,6 +7,7 @@
 #include "VBO.h"
 #include "EBO.h"
 #include "Camera.h"
+#include "Texture.h"
 #include <stb/stb_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -123,40 +124,16 @@ int main() {
 
     // GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale"); // Get the location of the scale uniform
 
-    // textures
-    int widthImg, heightImg, numColCh;
-    stbi_set_flip_vertically_on_load(true);
-    int noOfChannels = 4;
-    unsigned char* bytes = stbi_load("../resources/textures/brick.png", &widthImg, &heightImg, &numColCh, noOfChannels);
-
-    GLuint texture;
-    int noOfTextures = 1;
-    glGenTextures( noOfTextures, &texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(bytes);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0"); // Get the location of the texture uniform
-    shaderProgram.activate(); // Activate the shader program
-    glUniform1i(tex0Uni, 0); // Set the texture unit to 0
+    Texture brickTex("../resources/textures/brick.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+	brickTex.texUnit(shaderProgram, "tex0", 0);
 
     // float rotationAngle = 30.0f;
     // double prevTime = glfwGetTime();
 
     glEnable(GL_DEPTH_TEST); // Enable depth testing 
 
-    Camera camera(screenWidth, screenHeight, glm::vec3(0.0f, 0.5f, 2.0f));
+    // Creates camera object
+	Camera camera(screenWidth, screenHeight, glm::vec3(0.0f, 0.5f, 2.0f));
 
     while (!glfwWindowShouldClose(window)) { // loop until the window is closed
 
@@ -165,44 +142,16 @@ int main() {
 
         shaderProgram.activate(); // Activate the shader program
 
-        camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
+        // Handles camera inputs
+		camera.Inputs(window);
+		// Updates and exports the camera matrix to the Vertex Shader
+		camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
 
-        // glm::mat4 model = glm::mat4(1.0f); // model matrix initialized to identity matrix
-        // glm::mat4 view = glm::mat4(1.0f); // view matrix initialized to identity matrix
-        // glm::mat4 proj = glm::mat4(1.0f); // projection matrix initialized to identity matrix
-
-        // we rotate the world around the y-axis by 0.5 degrees per frame
-        // double crntTime = glfwGetTime();
-        // if(crntTime - prevTime >= 1.0 / 60.0) { // 60 frames per second
-        //     rotationAngle += 0.5f;
-        //     prevTime = crntTime;
-        // }
-
-        // // we rotate the world around the y-axis 
-        // model = glm::rotate(model, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-        // // now our camera is at the origin looking at the negative z-axis ( into the screen )
-        // // instead of moving the camera, we move the the world around the camera
-        // view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
-        // proj = glm::perspective(glm::radians(45.0f), (float)(screenWidth )/ (float)(screenHeight), 0.1f, 100.0f); // 45 degree field of view, aspect ratio, near plane, far plane
-        // // this means we will only see objects that are between 0.1 units and 100 units from the camera, otherwise they will be clipped
-
-        // int modelLoc = glGetUniformLocation(shaderProgram.ID, "model"); // Get the location of the model uniform
-        // int viewLoc = glGetUniformLocation(shaderProgram.ID, "view"); // Get the location of the view uniform
-        // int projLoc = glGetUniformLocation(shaderProgram.ID, "proj"); // Get the location of the projection uniform
-
-        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); // Set the model matrix
-        // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)); // Set the view matrix
-        // glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj)); // Set the projection matrix
-
-        // glUnifo rm1f(uniID, 0.5f); // Set the scale to 0.5, so we actually set the length 1 + 0.5 = 1.5 times the original length, 
-        // this should be called after the shader program is activated
-
-        glBindTexture(GL_TEXTURE_2D, texture); // Bind the texture to the texture unit
+		// Binds texture so that is appears in rendering
+		brickTex.Bind();
 
         VAO1.Bind(); // Bind the VAO
 
-        int startIndex = 0;
-        // glDrawArrays(GL_TRIANGLES, startIndex, noOfVertices); // Draw the triangles
         int noOfIndices = sizeof(indices) / sizeof(indices[0]);
         glDrawElements(GL_TRIANGLES, noOfIndices, GL_UNSIGNED_INT, 0); // Draw the triangles using the indices
         glfwSwapBuffers(window); // Swap the back buffer with the front buffer
@@ -213,11 +162,11 @@ int main() {
     VAO1.Delete(); // Delete the VAO
     VBO1.Delete(); // Delete the VBO
     EBO1.Delete(); // Delete the EBO
+    brickTex.Delete(); // Delete the texture
     shaderProgram.deleteShader(); // Delete the shader program
 
     glfwDestroyWindow(window); // Destroy the window
     glfwTerminate(); // Clean up GLFW when the program is done
-    glDeleteTextures(noOfTextures, &texture); // Delete the texture
 
     return 0; // Return success
 }

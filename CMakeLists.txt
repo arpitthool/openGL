@@ -17,6 +17,7 @@ add_executable(
     src/EBO.cpp
     src/stb.cpp
     src/Camera.cpp
+    src/Texture.cpp
 )
 
 # Add include directories for GLAD and headers
