@@ -125,7 +125,7 @@ int main() {
     int widthImg, heightImg, numColCh;
     stbi_set_flip_vertically_on_load(true);
     int noOfChannels = 4;
-    unsigned char* bytes = stbi_load("../resources/textures/Dog.png", &widthImg, &heightImg, &numColCh, noOfChannels);
+    unsigned char* bytes = stbi_load("../resources/textures/brick.png", &widthImg, &heightImg, &numColCh, noOfChannels);
 
     GLuint texture;
     int noOfTextures = 1;
