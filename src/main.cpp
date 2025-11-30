@@ -2,14 +2,15 @@
 #include <glad/glad.h>  // Include GLAD before GLFW (GLAD must be included before any OpenGL headers)
 #include <GLFW/glfw3.h>
 #include <cmath>
-#include "../headers/shaderClass.h"
-#include "../headers/VAO.h"
-#include "../headers/VBO.h"
-#include "../headers/EBO.h"
-#include "../dependencies/stb/stb_image.h"
-#include "../dependencies/glm/glm.hpp"
-#include "../dependencies/glm/gtc/matrix_transform.hpp"
-#include "../dependencies/glm/gtc/type_ptr.hpp"
+#include "shaderClass.h"
+#include "VAO.h"
+#include "VBO.h"
+#include "EBO.h"
+#include "Camera.h"
+#include <stb/stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 // to save memory, we just need to store the vertices of the outer triangle and the inner midpoints to draw all 3 triangles
 // GLfloat vertices[] =
@@ -66,6 +67,7 @@ GLuint indices[] =
 	3, 0, 4
 };
 
+
 int main() {
 
     // Note : all openGL object are accessed by references
@@ -119,7 +121,7 @@ int main() {
 	VBO1.Unbind();
 	EBO1.Unbind();
 
-    GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale"); // Get the location of the scale uniform
+    // GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale"); // Get the location of the scale uniform
 
     // textures
     int widthImg, heightImg, numColCh;
@@ -149,10 +151,12 @@ int main() {
     shaderProgram.activate(); // Activate the shader program
     glUniform1i(tex0Uni, 0); // Set the texture unit to 0
 
-    float rotationAngle = 30.0f;
-    double prevTime = glfwGetTime();
+    // float rotationAngle = 30.0f;
+    // double prevTime = glfwGetTime();
 
     glEnable(GL_DEPTH_TEST); // Enable depth testing 
+
+    Camera camera(screenWidth, screenHeight, glm::vec3(0.0f, 0.5f, 2.0f));
 
     while (!glfwWindowShouldClose(window)) { // loop until the window is closed
 
@@ -161,34 +165,36 @@ int main() {
 
         shaderProgram.activate(); // Activate the shader program
 
-        glm::mat4 model = glm::mat4(1.0f); // model matrix initialized to identity matrix
-        glm::mat4 view = glm::mat4(1.0f); // view matrix initialized to identity matrix
-        glm::mat4 proj = glm::mat4(1.0f); // projection matrix initialized to identity matrix
+        camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
+
+        // glm::mat4 model = glm::mat4(1.0f); // model matrix initialized to identity matrix
+        // glm::mat4 view = glm::mat4(1.0f); // view matrix initialized to identity matrix
+        // glm::mat4 proj = glm::mat4(1.0f); // projection matrix initialized to identity matrix
 
         // we rotate the world around the y-axis by 0.5 degrees per frame
-        double crntTime = glfwGetTime();
-        if(crntTime - prevTime >= 1.0 / 60.0) { // 60 frames per second
-            rotationAngle += 0.5f;
-            prevTime = crntTime;
-        }
+        // double crntTime = glfwGetTime();
+        // if(crntTime - prevTime >= 1.0 / 60.0) { // 60 frames per second
+        //     rotationAngle += 0.5f;
+        //     prevTime = crntTime;
+        // }
 
-        // we rotate the world around the y-axis 
-        model = glm::rotate(model, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-        // now our camera is at the origin looking at the negative z-axis ( into the screen )
-        // instead of moving the camera, we move the the world around the camera
-        view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
-        proj = glm::perspective(glm::radians(45.0f), (float)(screenWidth )/ (float)(screenHeight), 0.1f, 100.0f); // 45 degree field of view, aspect ratio, near plane, far plane
-        // this means we will only see objects that are between 0.1 units and 100 units from the camera, otherwise they will be clipped
+        // // we rotate the world around the y-axis 
+        // model = glm::rotate(model, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+        // // now our camera is at the origin looking at the negative z-axis ( into the screen )
+        // // instead of moving the camera, we move the the world around the camera
+        // view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
+        // proj = glm::perspective(glm::radians(45.0f), (float)(screenWidth )/ (float)(screenHeight), 0.1f, 100.0f); // 45 degree field of view, aspect ratio, near plane, far plane
+        // // this means we will only see objects that are between 0.1 units and 100 units from the camera, otherwise they will be clipped
 
-        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model"); // Get the location of the model uniform
-        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view"); // Get the location of the view uniform
-        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj"); // Get the location of the projection uniform
+        // int modelLoc = glGetUniformLocation(shaderProgram.ID, "model"); // Get the location of the model uniform
+        // int viewLoc = glGetUniformLocation(shaderProgram.ID, "view"); // Get the location of the view uniform
+        // int projLoc = glGetUniformLocation(shaderProgram.ID, "proj"); // Get the location of the projection uniform
 
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); // Set the model matrix
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)); // Set the view matrix
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj)); // Set the projection matrix
+        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); // Set the model matrix
+        // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view)); // Set the view matrix
+        // glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj)); // Set the projection matrix
 
-        glUniform1f(uniID, 0.5f); // Set the scale to 0.5, so we actually set the length 1 + 0.5 = 1.5 times the original length, 
+        // glUnifo rm1f(uniID, 0.5f); // Set the scale to 0.5, so we actually set the length 1 + 0.5 = 1.5 times the original length, 
         // this should be called after the shader program is activated
 
         glBindTexture(GL_TEXTURE_2D, texture); // Bind the texture to the texture unit
