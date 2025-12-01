@@ -261,9 +261,11 @@ int main()
 		// Tells OpenGL which Shader Program we want to use
 		shaderProgram.Activate();
 		// Reset model matrix and apply rotation
-		pyramidModel = glm::mat4(1.0f);
-		pyramidModel = glm::translate(pyramidModel, pyramidPos);
-		pyramidModel = glm::rotate(pyramidModel, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+		pyramidModel = glm::mat4(1.0f); // identity matrix
+		pyramidModel = glm::translate(pyramidModel, pyramidPos); // translate the pyramid to the pyramid position
+		glm::vec3 axis = glm::vec3(0.0f, 1.0f, 0.0f); // axis of rotation
+		pyramidModel = glm::rotate(pyramidModel, glm::radians(rotationAngle), axis); // rotate the pyramid around the axis by the rotation angle
+		
 		// Send the updated model matrix to the shader
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, glm::value_ptr(pyramidModel));
 		// Exports the camera Position to the Fragment Shader for specular lighting
