@@ -65,4 +65,15 @@ void Camera::Inputs(GLFWwindow* window)
 	{
 		Position += speed * -Up;
 	}
+	// Handles camera rotation with left and right arrow keys
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	{
+		// Rotate camera left (yaw left) - rotate Orientation around Up axis
+		Orientation = glm::rotate(Orientation, glm::radians(-sensitivity * 0.01f), Up);
+	}
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	{
+		// Rotate camera right (yaw right) - rotate Orientation around Up axis
+		Orientation = glm::rotate(Orientation, glm::radians(sensitivity * 0.01f), Up);
+	}
 }
