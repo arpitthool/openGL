@@ -1,6 +1,6 @@
 # OpenGL Project
 
-[Screencast from 11-30-2025 06:01:21 PM.webm](https://github.com/user-attachments/assets/22e453bd-2769-4773-beca-7ebcd0039ba6)
+[Screencast from 12-01-2025 02:56:53 PM.webm](https://github.com/user-attachments/assets/650632c7-8e3d-43c1-a4ff-d77c65d0928c)
 
 ## Building
 
