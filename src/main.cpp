@@ -204,7 +204,19 @@ int main()
 	lightVBO.Unbind();
 	lightEBO.Unbind();
 
-	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	glm::vec4 lightColors[] = {
+		glm::vec4(1.0f, 0.0f, 0.0f, 1.0f),
+		glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),
+		glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),
+		glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+		glm::vec4(1.0f, 0.5f, 0.5f, 1.0f),
+		glm::vec4(0.0f, 1.0f, 1.0f, 1.0f),
+		glm::vec4(1.0f, 0.0f, 1.0f, 1.0f),
+		glm::vec4(0.5f, 0.5f, 0.5f, 1.0f),
+		glm::vec4(0.5f, 0.5f, 1.0f, 1.0f),
+	};
+	int lightColorIndex = 0;
+	glm::vec4 lightColor = lightColors[lightColorIndex];
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f); // identity matrix
 	lightModel = glm::translate(lightModel, lightPos); // translate the light cube to the light position
@@ -237,6 +249,7 @@ int main()
 
     float rotationAngle = 30.0f;
     double prevTime = glfwGetTime();
+	int lightColorCounter = 0, counterMax = 30;
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -255,8 +268,18 @@ int main()
         double crntTime = glfwGetTime();
         if(crntTime - prevTime >= 1.0 / 60.0) { // 60 frames per second
             rotationAngle += 0.5f;
-            prevTime = crntTime;
-        }
+			prevTime = crntTime;
+		}
+
+		if(lightColorCounter >= counterMax) {
+			lightColorIndex++;
+			if(lightColorIndex >= sizeof(lightColors) / sizeof(lightColors[0])) {
+				lightColorIndex = 0;
+			}
+			lightColor = lightColors[lightColorIndex];
+			lightColorCounter = 0;
+		}
+		lightColorCounter++;
 
 		// Tells OpenGL which Shader Program we want to use
 		shaderProgram.Activate();
@@ -270,6 +293,10 @@ int main()
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, glm::value_ptr(pyramidModel));
 		// Exports the camera Position to the Fragment Shader for specular lighting
 		glUniform3f(glGetUniformLocation(shaderProgram.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
+
+		// Export the light color to the shader
+		glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w); // export the light color to the shader
+
 		// Export the camMatrix to the Vertex Shader of the pyramid
 		camera.Matrix(shaderProgram, "camMatrix");
 		// Binds texture so that is appears in rendering
@@ -283,6 +310,10 @@ int main()
 		lightShader.Activate();
 		// Export the camMatrix to the Vertex Shader of the light cube
 		camera.Matrix(lightShader, "camMatrix");
+
+		// Export the light color to the shader
+		glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w); // export the light color to the shader
+
 		// Bind the VAO so OpenGL knows to use it
 		lightVAO.Bind();
 		// Draw primitives, number of indices, datatype of indices, index of indices
