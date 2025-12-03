@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <glad/glad.h>  // Include GLAD before GLFW (GLAD must be included before any OpenGL headers)
 #include <GLFW/glfw3.h>
 #include <cmath>
@@ -152,16 +153,20 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
-	GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL", NULL, NULL);
+	// unique_ptr with custom deleter to automatically clean up the window
+	std::unique_ptr<GLFWwindow, decltype(&glfwDestroyWindow)> window(
+		glfwCreateWindow(width, height, "OpenGL", NULL, NULL),
+		glfwDestroyWindow
+	);
 	// Error check if the window fails to create
-	if (window == NULL)
+	if (window == nullptr)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
 	// Introduce the window into the current context
-	glfwMakeContextCurrent(window);
+	glfwMakeContextCurrent(window.get());
 
 	//Load GLAD so it configures OpenGL
 	gladLoadGL();
@@ -252,7 +257,7 @@ int main()
 	int lightColorCounter = 0, counterMax = 30;
 
 	// Main while loop
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window.get()))
 	{
 		// Specify the color of the background
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -260,7 +265,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Handles camera inputs
-		camera.Inputs(window);
+		camera.Inputs(window.get());
 		// Updates and exports the camera matrix to the Vertex Shader
 		camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
@@ -320,7 +325,7 @@ int main()
 		glDrawElements(GL_TRIANGLES, sizeof(lightIndices) / sizeof(int), GL_UNSIGNED_INT, 0);
 
 		// Swap the back buffer with the front buffer
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(window.get());
 		// Take care of all GLFW events
 		glfwPollEvents();
 	}
@@ -335,8 +340,7 @@ int main()
 	lightVBO.Delete();
 	lightEBO.Delete();
 	lightShader.Delete();
-	// Delete window before ending the program
-	glfwDestroyWindow(window);
+	// Window is automatically destroyed by unique_ptr's destructor
 	// Terminate GLFW before ending the program
 	glfwTerminate();
 	return 0;
